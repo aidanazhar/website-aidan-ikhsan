@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Tebak Negara</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Tebak Nama Negara</h1>
+    <div id="start-screen">
+      <p>Pilih level kesulitan:</p>
+      <div class="level-select">
+        <button onclick="startGame('easy')">Mudah</button>
+        <button onclick="startGame('medium')">Sedang</button>
+        <button onclick="startGame('hard')">Sulit</button>
+      </div>
+    </div>
+
+    <div id="quiz" style="display:none;">
+      <div id="question-number"></div>
+      <img id="flag-img" src="" alt="Bendera Negara">
+      <div class="options" id="options"></div>
+    </div>
+
+    <div id="result" style="display:none;"></div>
+    <button id="music-toggle" onclick="toggleMusic()">🔊 Musik</button>
+  </div>
+
+  <footer class="watermark">
+    Dibuat oleh Aidan & Ikhsan
+  </footer>
+
+  <audio id="backsound" src="backsoundtbknegara.mp3" loop></audio>
+
+  <script>
+    const questions = {
+      easy: [
+        { img: "indonesia.jpg", a: "Indonesia", options: ["Monako", "Polandia", "Indonesia", "Singapura"] },
+        { img: "thailand.jpg", a: "Thailand", options: ["Thailand", "Vietnam", "Malaysia", "Myanmar"] },
+        { img: "france.jpg", a: "Prancis", options: ["Belanda", "Italia", "Jerman", "Prancis"] },
+        { img: "japan.jpg", a: "Jepang", options: ["Taiwan", "Korea Selatan", "Tiongkok", "Jepang"] },
+        { img: "australia.jpg", a: "Australia", options: ["Selandia Baru", "Australia", "Austria", "Kanada"] },
+        { img: "brazil.jpg", a: "Brazil", options: ["Venezuela", "Argentina", "Brazil", "Chile"] },
+        { img: "inggris.jpg", a: "Inggris", options: ["Inggris", "Skotlandia", "Irlandia", "Wales"] },
+        { img: "jerman.jpg", a: "Jerman", options: ["Austria", "Jerman", "Belgia", "Swiss"] },
+        { img: "kanada.jpg", a: "Kanada", options: ["Russia", "Amerika", "Norwegia", "Kanada"] },
+        { img: "india.jpg", a: "India", options: ["Pakistan", "India", "Nepal", "Bangladesh"] },
+      ],
+      medium: [
+        { img: "mesir.jpg", a: "Mesir", options: ["Mesir", "Yaman", "Aljazair", "Tunisia"] },
+        { img: "argentina.jpg", a: "Argentina", options: ["Uruguay", "Brasil", "Chile", "Argentina"] },
+        { img: "norwegia.jpg", a: "Norwegia", options: ["Swedia", "Norwegia", "Finlandia", "Islandia"] },
+        { img: "spanyol.jpg", a: "Spanyol", options: ["Prancis", "Portugal", "Italia", "Spanyol"] },
+        { img: "korea_selatan.jpg", a: "Korea Selatan", options: ["China", "Korea Utara", "Korea Selatan", "Vietnam"] },
+        { img: "mexico.jpg", a: "Meksiko", options: ["Meksiko", "Brasil", "Argentina", "Venezuela"] },
+        { img: "turki.jpg", a: "Turki", options: ["Turki", "Iran", "Yunani", "Irak"] },
+        { img: "belanda.jpg", a: "Belanda", options: ["Prancis", "Belanda", "Denmark", "Jerman"] },
+        { img: "swiss.jpg", a: "Swiss", options: ["Jerman", "Austria", "Swiss", "Italia"] },
+        { img: "colombia.jpg", a: "Kolombia", options: ["Peru", "Ekuador", "Kolombia", "Panama"] },
+      ],
+      hard: [
+        { img: "mongolia.jpg", a: "Mongolia", options: ["Macau", "Nepal", "Luxembourg", "Mongolia"] },
+        { img: "azerbaijan.jpg", a: "Azerbaijan", options: ["Afghanistan", "Azerbaijan", "Kazakhtan", "Turkmenistan"] },
+        { img: "liechtenstein.jpg", a: "Liechtenstein", options: ["Liechtenstein", "Slovenia", "San Marino", "Andorra"] },
+        { img: "bhutan.jpg", a: "Bhutan", options: ["Bangladesh", "Nepal", "Bhutan", "Sri Lanka"] },
+        { img: "namibia.jpg", a: "Namibia", options: ["Namibia", "Botswana", "Zambia", "Zimbabwe"] },
+        { img: "sri_lanka.jpg", a: "Sri Lanka", options: ["Kuwait", "Sri Lanka", "Bangladesh", "Maladewa"] },
+        { img: "estonia.jpg", a: "Estonia", options: ["Vatikan", "Latvia", "Lituania", "Estonia"] },
+        { img: "vanuatu.jpg", a: "Vanuatu", options: ["North Caledonia", "Vanuatu", "Libya", "Fiji"] },
+        { img: "malawi.jpg", a: "Malawi", options: ["Malawi", "Mozambik", "Zambia", "Tanzania"] },
+        { img: "marshall_island.jpg", a: "Marshall Island", options: ["Cook Island", "Philipp Island", "Marshall Island", "Kiribati Island"] },
+      ]
+    };
+
+    let currentLevel = '';
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function startGame(level) {
+      const audio = document.getElementById("backsound");
+      audio.volume = 0.4;
+      audio.play();
+
+      currentLevel = level;
+      currentQuestionIndex = 0;
+      score = 0;
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('quiz').style.display = 'block';
+      document.getElementById('result').style.display = 'none';
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const qData = questions[currentLevel][currentQuestionIndex];
+      document.getElementById('question-number').innerText = `Pertanyaan ${currentQuestionIndex + 1}`;
+      document.getElementById('flag-img').src = qData.img;
+      const optionsEl = document.getElementById('options');
+      optionsEl.innerHTML = '';
+
+      qData.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(answer) {
+      const correct = questions[currentLevel][currentQuestionIndex].a;
+      if (answer === correct) score++;
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex < 10) {
+        showQuestion();
+      } else {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      document.getElementById('quiz').style.display = 'none';
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').innerHTML = `
+        <h2>Skor Kamu: ${score}/10</h2>
+        <button onclick="location.reload()">Main Lagi</button>
+      `;
+    }
+
+    function toggleMusic() {
+      const audio = document.getElementById("backsound");
+      audio.muted = !audio.muted;
+      document.getElementById("music-toggle").innerText = audio.muted ? "🔇 Musik" : "🔊 Musik";
+    }
+  </script>
+</body>
+</html>
